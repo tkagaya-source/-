@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学校ポータルサイト</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="header">
+    <h1 class="header__title">学校ポータルサイト</h1>
+    <nav class="header__nav">
+      <a href="#announcements" class="header__link">お知らせ</a>
+      <a href="#schedule" class="header__link">時間割</a>
+    </nav>
+  </header>
+
+  <main class="main">
+    <!-- お知らせセクション -->
+    <section id="announcements" class="section">
+      <h2 class="section__title">お知らせ</h2>
+      <div id="announcement-list" class="announcement-list">
+        <!-- JavaScriptで動的に挿入 -->
+      </div>
+    </section>
+
+    <!-- 時間割セクション -->
+    <section id="schedule" class="section">
+      <h2 class="section__title">時間割</h2>
+      <div class="schedule-controls">
+        <select id="class-select" class="schedule-controls__select">
+          <option value="1A">1年A組</option>
+          <option value="1B">1年B組</option>
+          <option value="2A">2年A組</option>
+          <option value="2B">2年B組</option>
+        </select>
+      </div>
+      <div class="schedule-table-wrapper">
+        <table id="schedule-table" class="schedule-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>月</th>
+              <th>火</th>
+              <th>水</th>
+              <th>木</th>
+              <th>金</th>
+            </tr>
+          </thead>
+          <tbody id="schedule-body">
+            <!-- JavaScriptで動的に挿入 -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2026 学校ポータルサイト</p>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
