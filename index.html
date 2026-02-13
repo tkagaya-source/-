@@ -49,10 +49,13 @@
 
       <!-- お知らせ + カレンダー 横並び -->
       <div class="grid-2">
-        <!-- お知らせカード -->
+        <!-- お知らせカード（タブ切替：先生方へ / 生徒伝達事項） -->
         <div class="card">
           <div class="card__header">
-            <div class="card__title">📢 お知らせ</div>
+            <div class="card__tabs" id="homeNoticeTabs">
+              <div class="card__tab card__tab--active" data-tab="teacher">先生方へ</div>
+              <div class="card__tab" data-tab="student">生徒伝達事項</div>
+            </div>
             <div class="card__more" data-nav="announcements">すべて見る →</div>
           </div>
           <div class="notice-list" id="homeNoticeList"></div>
@@ -97,16 +100,30 @@
       </div>
     </section>
 
-    <!-- ===== お知らせセクション（全件表示） ===== -->
+    <!-- ===== お知らせセクション（全件表示・2種類タブ切替） ===== -->
     <section id="section-announcements" class="page-section">
       <h2 class="page-title">📢 お知らせ一覧</h2>
-      <div class="filter-bar" id="announcementFilter">
-        <button class="filter-btn filter-btn--active" data-filter="all">すべて</button>
-        <button class="filter-btn" data-filter="important">重要</button>
-        <button class="filter-btn" data-filter="new">NEW</button>
-        <button class="filter-btn" data-filter="info">連絡</button>
+      <!-- 先生方へ / 生徒伝達事項 タブ -->
+      <div class="announce-tabs" id="announceTabs">
+        <button class="announce-tab announce-tab--active" data-announce-tab="teacher">先生方へ</button>
+        <button class="announce-tab" data-announce-tab="student">生徒伝達事項</button>
       </div>
-      <div class="announcement-full-list" id="announcementFullList"></div>
+
+      <!-- 先生方へ パネル -->
+      <div id="teacherPanel" class="announce-panel announce-panel--active">
+        <div class="filter-bar" id="announcementFilter">
+          <button class="filter-btn filter-btn--active" data-filter="all">すべて</button>
+          <button class="filter-btn" data-filter="important">重要</button>
+          <button class="filter-btn" data-filter="new">NEW</button>
+          <button class="filter-btn" data-filter="info">連絡</button>
+        </div>
+        <div class="announcement-full-list" id="announcementFullList"></div>
+      </div>
+
+      <!-- 生徒伝達事項 パネル -->
+      <div id="studentPanel" class="announce-panel">
+        <div class="announcement-full-list" id="studentFullList"></div>
+      </div>
     </section>
 
     <!-- ===== カレンダーセクション（全画面） ===== -->

@@ -35,6 +35,20 @@
     return y + "-" + m + "-" + d;
   }
 
+  // --- notifyDate を「M/D（曜）」形式に変換 ---
+  function formatNotifyDateShort(dateStr) {
+    var parts = dateStr.split("-");
+    var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    return (d.getMonth() + 1) + "/" + d.getDate() + "（" + DAY_NAMES[d.getDay()] + "）";
+  }
+
+  // --- 生徒伝達事項をnotifyDate昇順（直近→未来）でソート ---
+  function getSortedStudentAnnouncements() {
+    return studentAnnouncements.slice().sort(function (a, b) {
+      return a.notifyDate.localeCompare(b.notifyDate);
+    });
+  }
+
   /* ==============================
    * カレンダー状態管理
    * ============================== */
@@ -42,6 +56,9 @@
     home: { year: 0, month: 0, selectedDate: null },
     full: { year: 0, month: 0, selectedDate: null }
   };
+
+  // ホームお知らせタブの状態（"teacher" | "student"）
+  var homeNoticeTab = "teacher";
 
   /* ==============================
    * ヘッダー・挨拶
@@ -95,6 +112,7 @@
     // セクション固有の初期化
     if (sectionName === "announcements") {
       renderAnnouncementFullList("all");
+      renderStudentFullList();
     } else if (sectionName === "calendar") {
       renderCalendar("full");
       renderCalendarEventsList();
@@ -147,18 +165,53 @@
   }
 
   /* ==============================
+   * ホームお知らせタブ切替
+   * ============================== */
+  function setupHomeNoticeTabs() {
+    var tabsContainer = document.getElementById("homeNoticeTabs");
+    if (!tabsContainer) return;
+
+    tabsContainer.addEventListener("click", function (e) {
+      var tab = e.target.closest(".card__tab");
+      if (!tab) return;
+
+      var tabName = tab.getAttribute("data-tab");
+      if (tabName === homeNoticeTab) return;
+
+      homeNoticeTab = tabName;
+
+      // タブの見た目を切替
+      tabsContainer.querySelectorAll(".card__tab").forEach(function (t) {
+        t.classList.remove("card__tab--active");
+      });
+      tab.classList.add("card__tab--active");
+
+      // リストを再描画
+      renderHomeNotices();
+    });
+  }
+
+  /* ==============================
    * お知らせ（ホーム・サマリー）
    * ============================== */
   function renderHomeNotices() {
     var container = document.getElementById("homeNoticeList");
     if (!container) return;
 
-    // 最新5件
-    var items = announcements.slice(0, 5);
+    if (homeNoticeTab === "teacher") {
+      renderHomeTeacherNotices(container);
+    } else {
+      renderHomeStudentNotices(container);
+    }
+  }
+
+  // --- 先生方へ（ホーム・サマリー） ---
+  function renderHomeTeacherNotices(container) {
+    var items = teacherAnnouncements.slice(0, 5);
     var html = "";
     items.forEach(function (item) {
       html +=
-        '<div class="notice-item" data-announcement-id="' + item.id + '">' +
+        '<div class="notice-item" data-announcement-id="' + item.id + '" data-type="teacher">' +
         '  <span class="notice-badge badge-' + escapeHtml(item.category) + '">' + escapeHtml(item.categoryLabel) + "</span>" +
         '  <div class="notice-content">' +
         '    <div class="notice-title">' + escapeHtml(item.title) + "</div>" +
@@ -172,21 +225,49 @@
     container.querySelectorAll(".notice-item").forEach(function (el) {
       el.addEventListener("click", function () {
         var id = parseInt(this.getAttribute("data-announcement-id"), 10);
-        showAnnouncementModal(id);
+        showTeacherModal(id);
+      });
+    });
+  }
+
+  // --- 生徒伝達事項（ホーム・サマリー） ---
+  function renderHomeStudentNotices(container) {
+    var sorted = getSortedStudentAnnouncements().slice(0, 5);
+    var html = "";
+    sorted.forEach(function (item) {
+      html +=
+        '<div class="notice-item" data-announcement-id="' + item.id + '" data-type="student">' +
+        '  <div class="notice-content">' +
+        '    <div class="notice-tags">' +
+        '      <span class="notice-tag notice-tag--date">' + escapeHtml(formatNotifyDateShort(item.notifyDate)) + '</span>' +
+        '      <span class="notice-tag notice-tag--grade">' + escapeHtml(item.targetGrade) + '</span>' +
+        '    </div>' +
+        '    <div class="notice-title">' + escapeHtml(item.title) + "</div>" +
+        '    <div class="notice-meta">' + escapeHtml(item.department) + "</div>" +
+        "  </div>" +
+        "</div>";
+    });
+    container.innerHTML = html;
+
+    // クリックでモーダル表示
+    container.querySelectorAll(".notice-item").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var id = parseInt(this.getAttribute("data-announcement-id"), 10);
+        showStudentModal(id);
       });
     });
   }
 
   /* ==============================
-   * お知らせ（全件・フィルタ付き）
+   * 先生方へ（全件・フィルタ付き）
    * ============================== */
   function renderAnnouncementFullList(filter) {
     var container = document.getElementById("announcementFullList");
     if (!container) return;
 
     var items = filter === "all"
-      ? announcements
-      : announcements.filter(function (a) { return a.category === filter; });
+      ? teacherAnnouncements
+      : teacherAnnouncements.filter(function (a) { return a.category === filter; });
 
     if (items.length === 0) {
       container.innerHTML = '<p style="padding:24px;color:var(--text-sub);text-align:center;">該当するお知らせはありません</p>';
@@ -196,7 +277,7 @@
     var html = "";
     items.forEach(function (item) {
       html +=
-        '<div class="announcement-card" data-announcement-id="' + item.id + '">' +
+        '<div class="announcement-card" data-announcement-id="' + item.id + '" data-type="teacher">' +
         '  <div class="announcement-card__header">' +
         '    <span class="notice-badge badge-' + escapeHtml(item.category) + '">' + escapeHtml(item.categoryLabel) + "</span>" +
         '    <span class="announcement-card__title">' + escapeHtml(item.title) + "</span>" +
@@ -211,7 +292,7 @@
     container.querySelectorAll(".announcement-card").forEach(function (el) {
       el.addEventListener("click", function () {
         var id = parseInt(this.getAttribute("data-announcement-id"), 10);
-        showAnnouncementModal(id);
+        showTeacherModal(id);
       });
     });
   }
@@ -236,10 +317,83 @@
   }
 
   /* ==============================
-   * お知らせモーダル
+   * 生徒伝達事項（全件・notifyDate昇順）
    * ============================== */
-  function showAnnouncementModal(id) {
-    var item = announcements.find(function (a) { return a.id === id; });
+  function renderStudentFullList() {
+    var container = document.getElementById("studentFullList");
+    if (!container) return;
+
+    var sorted = getSortedStudentAnnouncements();
+
+    if (sorted.length === 0) {
+      container.innerHTML = '<p style="padding:24px;color:var(--text-sub);text-align:center;">生徒伝達事項はありません</p>';
+      return;
+    }
+
+    var html = "";
+    sorted.forEach(function (item) {
+      html +=
+        '<div class="student-card" data-announcement-id="' + item.id + '" data-type="student">' +
+        '  <div class="student-card__meta-row">' +
+        '    <span class="student-card__tag tag-notify-date">連絡日: ' + escapeHtml(formatNotifyDateShort(item.notifyDate)) + '</span>' +
+        '    <span class="student-card__tag tag-target-grade">対象: ' + escapeHtml(item.targetGrade) + '</span>' +
+        '  </div>' +
+        '  <div class="student-card__title">' + escapeHtml(item.title) + '</div>' +
+        '  <div class="student-card__body">' + escapeHtml(item.body) + '</div>' +
+        '  <div class="student-card__footer">登録日: ' + escapeHtml(item.date) + ' · ' + escapeHtml(item.department) + '</div>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+
+    // クリックでモーダル表示
+    container.querySelectorAll(".student-card").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var id = parseInt(this.getAttribute("data-announcement-id"), 10);
+        showStudentModal(id);
+      });
+    });
+  }
+
+  /* ==============================
+   * お知らせセクション タブ切替
+   * ============================== */
+  function setupAnnounceTabs() {
+    var tabsContainer = document.getElementById("announceTabs");
+    if (!tabsContainer) return;
+
+    tabsContainer.addEventListener("click", function (e) {
+      var btn = e.target.closest(".announce-tab");
+      if (!btn) return;
+
+      var tabName = btn.getAttribute("data-announce-tab");
+
+      // タブの見た目を切替
+      tabsContainer.querySelectorAll(".announce-tab").forEach(function (b) {
+        b.classList.remove("announce-tab--active");
+      });
+      btn.classList.add("announce-tab--active");
+
+      // パネルの表示切替
+      var teacherPanel = document.getElementById("teacherPanel");
+      var studentPanel = document.getElementById("studentPanel");
+
+      if (tabName === "teacher") {
+        teacherPanel.classList.add("announce-panel--active");
+        studentPanel.classList.remove("announce-panel--active");
+      } else {
+        teacherPanel.classList.remove("announce-panel--active");
+        studentPanel.classList.add("announce-panel--active");
+      }
+    });
+  }
+
+  /* ==============================
+   * モーダル
+   * ============================== */
+
+  // --- 先生方へモーダル ---
+  function showTeacherModal(id) {
+    var item = teacherAnnouncements.find(function (a) { return a.id === id; });
     if (!item) return;
 
     var content = document.getElementById("modalContent");
@@ -250,6 +404,26 @@
       '<div class="modal-meta">' +
       '  <span class="notice-badge badge-' + escapeHtml(item.category) + '">' + escapeHtml(item.categoryLabel) + "</span>" +
       "  <span>" + escapeHtml(item.date) + "</span>" +
+      "  <span>" + escapeHtml(item.department) + "</span>" +
+      "</div>" +
+      '<div class="modal-body">' + escapeHtml(item.body) + "</div>";
+
+    openModal();
+  }
+
+  // --- 生徒伝達事項モーダル ---
+  function showStudentModal(id) {
+    var item = studentAnnouncements.find(function (a) { return a.id === id; });
+    if (!item) return;
+
+    var content = document.getElementById("modalContent");
+    if (!content) return;
+
+    content.innerHTML =
+      "<h3>" + escapeHtml(item.title) + "</h3>" +
+      '<div class="modal-meta">' +
+      '  <span class="student-card__tag tag-notify-date">連絡日: ' + escapeHtml(formatNotifyDateShort(item.notifyDate)) + '</span>' +
+      '  <span class="student-card__tag tag-target-grade">対象: ' + escapeHtml(item.targetGrade) + '</span>' +
       "  <span>" + escapeHtml(item.department) + "</span>" +
       "</div>" +
       '<div class="modal-body">' + escapeHtml(item.body) + "</div>";
@@ -363,7 +537,7 @@
       html += '<div class="' + cls + '" data-date="' + dateStr + '" data-target="' + target + '">' + d + "</div>";
     }
 
-    // 次月の日を埋める（6行 × 7列 = 42セルにする）
+    // 次月の日を埋める
     var totalCells = startDow + lastDay.getDate();
     var remaining = (7 - (totalCells % 7)) % 7;
     for (var n = 1; n <= remaining; n++) {
@@ -400,7 +574,6 @@
         var tgt = this.getAttribute("data-target");
         var st = calendarState[tgt];
 
-        // 選択状態のトグル
         if (st.selectedDate === date) {
           st.selectedDate = null;
         } else {
@@ -409,10 +582,8 @@
 
         renderCalendar(tgt);
 
-        // 全画面カレンダーの場合、行事リスト更新
         if (tgt === "full") renderCalendarEventsList();
 
-        // 日付にイベントがある場合はモーダル表示（ホームカレンダーの場合）
         if (tgt === "home" && st.selectedDate) {
           var dayEvents = getEventsForDate(date);
           if (dayEvents.length > 0) {
@@ -452,7 +623,6 @@
 
     var state = calendarState.full;
 
-    // 選択日があればその日の行事、なければ月全体
     var evts;
     var titleText;
     if (state.selectedDate) {
@@ -471,9 +641,7 @@
       return;
     }
 
-    // 日付順にソート
     evts.sort(function (a, b) { return a.date.localeCompare(b.date); });
-
     container.innerHTML = renderEventItems(evts);
   }
 
@@ -528,7 +696,6 @@
     var container = document.getElementById("homeLinksGrid");
     if (!container) return;
 
-    // 最初の6件
     var items = sharedLinks.slice(0, 6);
     var html = "";
     items.forEach(function (link) {
@@ -621,7 +788,9 @@
 
     // イベント設定
     setupNavigation();
+    setupHomeNoticeTabs();
     setupAnnouncementFilter();
+    setupAnnounceTabs();
     setupModal();
   }
 
