@@ -3,60 +3,153 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>学校ポータルサイト</title>
+  <title>教職員ポータル | 千葉日本大学第一中学校・高等学校</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- ===== ヘッダー ===== -->
   <header class="header">
-    <h1 class="header__title">学校ポータルサイト</h1>
-    <nav class="header__nav">
-      <a href="#announcements" class="header__link">お知らせ</a>
-      <a href="#schedule" class="header__link">時間割</a>
-    </nav>
+    <div class="header__logo">
+      <div class="header__logo-icon">🏫</div>
+      <div class="header__logo-text">
+        Staff Portal
+        <span>千葉日本大学第一中学校・高等学校 教職員ポータル</span>
+      </div>
+    </div>
+    <div class="header__right">
+      <div class="header__date" id="headerDate"></div>
+      <div class="header__avatar" id="headerAvatar">加</div>
+    </div>
   </header>
 
+  <!-- ===== ナビゲーション ===== -->
+  <nav class="nav" id="mainNav">
+    <div class="nav__item nav__item--active" data-section="home">ホーム</div>
+    <div class="nav__item" data-section="announcements">お知らせ</div>
+    <div class="nav__item" data-section="calendar">行事カレンダー</div>
+    <div class="nav__item" data-section="documents">共有ドキュメント</div>
+    <div class="nav__item" data-section="applications">申請フォーム</div>
+  </nav>
+
+  <!-- ===== メイン ===== -->
   <main class="main">
-    <!-- お知らせセクション -->
-    <section id="announcements" class="section">
-      <h2 class="section__title">お知らせ</h2>
-      <div id="announcement-list" class="announcement-list">
-        <!-- JavaScriptで動的に挿入 -->
+
+    <!-- ===== ホームセクション ===== -->
+    <section id="section-home" class="page-section page-section--active">
+      <!-- 挨拶 -->
+      <div class="greeting">
+        <h1 class="greeting__title" id="greetText"></h1>
+        <p class="greeting__sub" id="todayText"></p>
+      </div>
+
+      <!-- クイックアクセス -->
+      <div class="section-label">クイックアクセス</div>
+      <div class="quick-actions" id="quickActions"></div>
+
+      <!-- お知らせ + カレンダー 横並び -->
+      <div class="grid-2">
+        <!-- お知らせカード -->
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">📢 お知らせ</div>
+            <div class="card__more" data-nav="announcements">すべて見る →</div>
+          </div>
+          <div class="notice-list" id="homeNoticeList"></div>
+        </div>
+        <!-- カレンダーカード -->
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">📅 行事カレンダー</div>
+            <div class="card__more" data-nav="calendar">全表示 →</div>
+          </div>
+          <div class="calendar-wrap" id="homeCalendar"></div>
+        </div>
+      </div>
+
+      <!-- 行事一覧 + サイドバー -->
+      <div class="grid-2-1">
+        <!-- 直近の行事 -->
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">🗓 直近の行事</div>
+            <div class="card__more" data-nav="calendar">もっと見る →</div>
+          </div>
+          <div class="events-list" id="homeEventsList"></div>
+        </div>
+        <!-- サイドバー -->
+        <div class="sidebar">
+          <!-- 共有ドキュメント -->
+          <div class="card">
+            <div class="card__header">
+              <div class="card__title">🔗 共有ドキュメント</div>
+            </div>
+            <div class="links-grid" id="homeLinksGrid"></div>
+          </div>
+          <!-- 今日の状況 -->
+          <div class="card">
+            <div class="card__header">
+              <div class="card__title">📌 今日の状況</div>
+            </div>
+            <div class="status-widget" id="homeStatusWidget"></div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- 時間割セクション -->
-    <section id="schedule" class="section">
-      <h2 class="section__title">時間割</h2>
-      <div class="schedule-controls">
-        <select id="class-select" class="schedule-controls__select">
-          <option value="1A">1年A組</option>
-          <option value="1B">1年B組</option>
-          <option value="2A">2年A組</option>
-          <option value="2B">2年B組</option>
-        </select>
+    <!-- ===== お知らせセクション（全件表示） ===== -->
+    <section id="section-announcements" class="page-section">
+      <h2 class="page-title">📢 お知らせ一覧</h2>
+      <div class="filter-bar" id="announcementFilter">
+        <button class="filter-btn filter-btn--active" data-filter="all">すべて</button>
+        <button class="filter-btn" data-filter="important">重要</button>
+        <button class="filter-btn" data-filter="new">NEW</button>
+        <button class="filter-btn" data-filter="info">連絡</button>
       </div>
-      <div class="schedule-table-wrapper">
-        <table id="schedule-table" class="schedule-table">
-          <thead>
-            <tr>
-              <th></th>
-              <th>月</th>
-              <th>火</th>
-              <th>水</th>
-              <th>木</th>
-              <th>金</th>
-            </tr>
-          </thead>
-          <tbody id="schedule-body">
-            <!-- JavaScriptで動的に挿入 -->
-          </tbody>
-        </table>
+      <div class="announcement-full-list" id="announcementFullList"></div>
+    </section>
+
+    <!-- ===== カレンダーセクション（全画面） ===== -->
+    <section id="section-calendar" class="page-section">
+      <h2 class="page-title">📅 行事カレンダー</h2>
+      <div class="calendar-full">
+        <div class="card">
+          <div class="calendar-wrap calendar-wrap--large" id="fullCalendar"></div>
+        </div>
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title" id="calendarEventsTitle">この月の行事</div>
+          </div>
+          <div class="events-list" id="calendarEventsList"></div>
+        </div>
       </div>
     </section>
+
+    <!-- ===== 共有ドキュメントセクション ===== -->
+    <section id="section-documents" class="page-section">
+      <h2 class="page-title">📁 共有ドキュメント</h2>
+      <div class="documents-grid" id="documentsGrid"></div>
+    </section>
+
+    <!-- ===== 申請フォームセクション ===== -->
+    <section id="section-applications" class="page-section">
+      <h2 class="page-title">📋 申請フォーム</h2>
+      <div class="applications-grid" id="applicationsGrid"></div>
+    </section>
+
   </main>
 
+  <!-- ===== モーダル ===== -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modal">
+      <button class="modal__close" id="modalClose">&times;</button>
+      <div class="modal__content" id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- ===== フッター ===== -->
   <footer class="footer">
-    <p>&copy; 2026 学校ポータルサイト</p>
+    千葉日本大学第一中学校・高等学校 教職員ポータル &nbsp;|&nbsp; お問い合わせ: 総務部
   </footer>
 
   <script src="js/data.js"></script>
